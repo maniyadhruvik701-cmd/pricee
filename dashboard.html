@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2 class="sidebar-title">Menu</h2>
+            <ul class="nav-links">
+                <li id="nav-data-entry" class="active" onclick="switchTab('data-entry')">
+                    <svg style="width: 20px; height: 20px; margin-right: 10px; vertical-align: middle;" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                        </path>
+                    </svg>
+                    Data Entry
+                </li>
+                <li id="nav-report" onclick="switchTab('report')">
+                    <svg style="width: 20px; height: 20px; margin-right: 10px; vertical-align: middle;" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Report
+                </li>
+                <li id="nav-live-design" onclick="switchTab('live-design')">
+                    <svg style="width: 20px; height: 20px; margin-right: 10px; vertical-align: middle;" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z">
+                        </path>
+                    </svg>
+                    Live Design
+                </li>
+                <li id="nav-not-live-design" onclick="switchTab('not-live-design')">
+                    <svg style="width: 20px; height: 20px; margin-right: 10px; vertical-align: middle;" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                    Not Live Design
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Data Entry -->
+            <div id="data-entry-view" class="view-section active">
+                <div class="dashboard-header">
+                    <h1>Data Entry Dashboard</h1>
+                    <div class="header-actions">
+                        <button onclick="addRows(50)" class="btn primary">ADD 50 ROWS</button>
+                        <button onclick="deleteAll()" class="btn danger">DELETE ALL</button>
+                        <button onclick="logout()" class="btn secondary">Logout</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="data-table">
+                        <thead>
+                            <tr>
+                                <th>SR.NO</th>
+                                <th>DATE</th>
+                                <th>DESIGN NO</th>
+                                <th>AJIO</th>
+                                <th>AJ DATE</th>
+                                <th>AJIO DE</th>
+                                <th>D DATE</th>
+                                <th>AJIO TANUKA</th>
+                                <th>T DATE</th>
+                                <th>AMZONE</th>
+                                <th>A DATE</th>
+                                <th>MY DE</th>
+                                <th>M DATE</th>
+                                <th>MY JIHU</th>
+                                <th>MJ DATE</th>
+                                <th>T CENTER</th>
+                                <th>T DATE</th>
+                                <th>WEBSITE HONEST</th>
+                                <th>H DATE</th>
+                                <th>RTW</th>
+                                <th>R DATE</th>
+                                <th>MS</th>
+                                <th>MS DATE</th>
+                                <th>BB</th>
+                                <th>BB DATE</th>
+                                <th>DREAM</th>
+                                <th>DR DATE</th>
+                                <th>TRENDY CLUTURE</th>
+                                <th>TC DATE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Rows will be dynamically rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button id="prev-btn" onclick="prevPage()" class="btn secondary">Previous</button>
+                    <span id="page-info">Page 1</span>
+                    <button id="next-btn" onclick="nextPage()" class="btn secondary">Next</button>
+                </div>
+            </div>
+
+            <!-- Report View -->
+            <div id="report-view" class="view-section hidden" style="display: none;">
+                <div class="dashboard-header">
+                    <h1>Report Overview</h1>
+                    <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="date" id="report-start" class="date-input" title="Start Date">
+                        <span style="color: var(--text-secondary); font-weight: 500;">TO</span>
+                        <input type="date" id="report-end" class="date-input" title="End Date">
+                        <button onclick="generateReport()" class="btn primary">Generate Report</button>
+                        <button onclick="logout()" class="btn secondary">Logout</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="report-table">
+                        <thead id="report-table-head">
+                            <tr>
+                                <th>DESIGN NO</th>
+                                <th>AJIO</th>
+                                <th>AJIO DE</th>
+                                <th>AJIO TANUKA</th>
+                                <th>AMZONE</th>
+                                <th>MY DE</th>
+                                <th>MY JIHU</th>
+                                <th>T CENTER</th>
+                                <th>WEBSITE HONEST</th>
+                                <th>RTW</th>
+                                <th>MS</th>
+                                <th>BB</th>
+                                <th>DREAM</th>
+                                <th>TRENDY CLUTURE</th>
+                                <th>FINAL TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body">
+                            <!-- Report Data -->
+                        </tbody>
+                        <tfoot id="report-table-foot">
+                            <!-- Grand Totals -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Live Design View -->
+            <div id="live-design-view" class="view-section hidden" style="display: none;">
+                <div class="dashboard-header">
+                    <h1>Live Design</h1>
+                    <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="date" id="live-design-start" class="date-input" title="Start Date">
+                        <span style="color: var(--text-muted); font-weight: 500;">TO</span>
+                        <input type="date" id="live-design-end" class="date-input" title="End Date">
+                        <button onclick="generateLiveDesign()" class="btn primary">Generate Report</button>
+                        <button onclick="logout()" class="btn secondary">Logout</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="live-design-table">
+                        <thead id="live-design-table-head">
+                            <tr>
+                                <th>DESIGN NO</th>
+                                <th>AJIO</th>
+                                <th>AJ DATE</th>
+                                <th>AJIO DE</th>
+                                <th>D DATE</th>
+                                <th>AJIO TANUKA</th>
+                                <th>T DATE</th>
+                                <th>AMZONE</th>
+                                <th>A DATE</th>
+                                <th>MY DE</th>
+                                <th>M DATE</th>
+                                <th>MY JIHU</th>
+                                <th>MJ DATE</th>
+                                <th>T CENTER</th>
+                                <th>T DATE</th>
+                                <th>WEBSITE HONEST</th>
+                                <th>H DATE</th>
+                                <th>RTW</th>
+                                <th>R DATE</th>
+                                <th>MS</th>
+                                <th>MS DATE</th>
+                                <th>BB</th>
+                                <th>BB DATE</th>
+                                <th>DREAM</th>
+                                <th>DR DATE</th>
+                                <th>TRENDY CLUTURE</th>
+                                <th>TC DATE</th>
+                                <th>FINAL TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="live-design-table-body">
+                            <!-- Live Design Data -->
+                        </tbody>
+                        <tfoot id="live-design-table-foot">
+                            <!-- Grand Totals -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Not Live Design View -->
+            <div id="not-live-design-view" class="view-section hidden" style="display: none;">
+                <div class="dashboard-header">
+                    <h1>Not Live Design</h1>
+                    <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="date" id="not-live-design-start" class="date-input" title="Start Date">
+                        <span style="color: var(--text-muted); font-weight: 500;">TO</span>
+                        <input type="date" id="not-live-design-end" class="date-input" title="End Date">
+                        <button onclick="generateNotLiveDesign()" class="btn primary">Generate Report</button>
+                        <button onclick="logout()" class="btn secondary">Logout</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="not-live-design-table">
+                        <thead id="not-live-design-table-head">
+                            <tr>
+                                <th>DESIGN NO</th>
+                                <th>AJIO</th>
+                                <th>AJ DATE</th>
+                                <th>AJIO DE</th>
+                                <th>D DATE</th>
+                                <th>AJIO TANUKA</th>
+                                <th>T DATE</th>
+                                <th>AMZONE</th>
+                                <th>A DATE</th>
+                                <th>MY DE</th>
+                                <th>M DATE</th>
+                                <th>MY JIHU</th>
+                                <th>MJ DATE</th>
+                                <th>T CENTER</th>
+                                <th>T DATE</th>
+                                <th>WEBSITE HONEST</th>
+                                <th>H DATE</th>
+                                <th>RTW</th>
+                                <th>R DATE</th>
+                                <th>MS</th>
+                                <th>MS DATE</th>
+                                <th>BB</th>
+                                <th>BB DATE</th>
+                                <th>DREAM</th>
+                                <th>DR DATE</th>
+                                <th>TRENDY CLUTURE</th>
+                                <th>TC DATE</th>
+                                <th>FINAL TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="not-live-design-table-body">
+                            <!-- Not Live Design Data -->
+                        </tbody>
+                        <tfoot id="not-live-design-table-foot">
+                            <!-- Grand Totals -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
