@@ -21,6 +21,7 @@ let database = [];
 const rowsPerPage = 20;
 let currentPage = 1;
 const totalColumns = 29;
+let searchTerm = '';
 
 function saveData() {
     try {
@@ -32,13 +33,29 @@ function saveData() {
     }
 }
 
+function handleSearch(term) {
+    searchTerm = term.trim().toLowerCase();
+    currentPage = 1;
+    renderTable();
+}
+
+function getDisplayData() {
+    if (!searchTerm) return database;
+    return database.filter(row => {
+        const designNo = row[2] ? String(row[2]).toLowerCase() : '';
+        return designNo.includes(searchTerm);
+    });
+}
+
 function updateFromDatabase() {
     const tbody = document.getElementById('table-body');
     if (!tbody) return;
 
+    const displayData = getDisplayData();
     const startIdx = (currentPage - 1) * rowsPerPage;
-    const endIdx = Math.min(startIdx + rowsPerPage, database.length);
-    if (tbody.children.length !== (endIdx - startIdx)) {
+    const endIdx = Math.min(startIdx + rowsPerPage, displayData.length);
+
+    if (searchTerm || tbody.children.length !== (endIdx - startIdx)) {
         renderTable();
         return;
     }
@@ -77,7 +94,7 @@ function init() {
                 shouldWipe = true;
             } else {
                 for (let i = 0; i < database.length; i++) {
-                    if (!Array.isArray(database[i])) {
+                    if (typeof database[i] !== 'object' || database[i] === null) {
                         shouldWipe = true;
                         break;
                     }
@@ -104,8 +121,41 @@ function init() {
         auth.signInAnonymously().then(() => {
             dbRef.on('value', (snapshot) => {
                 const val = snapshot.val();
-                if (val && Array.isArray(val)) {
-                    database = val;
+                if (val) {
+                    // Firebase converts sparse arrays into Objects. We MUST convert it back.
+                    let newData = [];
+                    if (Array.isArray(val)) {
+                        newData = val;
+                    } else if (typeof val === 'object') {
+                        // Find max index to reconstruct array
+                        let maxIdx = -1;
+                        for (const key in val) {
+                            if (!isNaN(key)) {
+                                maxIdx = Math.max(maxIdx, parseInt(key));
+                            }
+                        }
+                        for (let i = 0; i <= maxIdx; i++) {
+                            newData.push(val[i] || new Array(totalColumns).fill(''));
+                        }
+                    }
+
+                    // Pad inner arrays just in case firebase stripped trailing empty strings
+                    newData.forEach((row, idx) => {
+                        if (!Array.isArray(row)) {
+                            // Convert object rows back to arrays
+                            const arrRow = new Array(totalColumns).fill('');
+                            if (typeof row === 'object' && row !== null) {
+                                for (const colKey in row) {
+                                    arrRow[colKey] = row[colKey];
+                                }
+                            }
+                            newData[idx] = arrRow;
+                        } else {
+                            while (row.length < totalColumns) row.push('');
+                        }
+                    });
+
+                    database = newData;
                     updateFromDatabase();
                 } else if (!val && database.length > 0) {
                     saveData();
@@ -159,8 +209,9 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    const displayData = getDisplayData();
     const startIdx = (currentPage - 1) * rowsPerPage;
-    const endIdx = Math.min(startIdx + rowsPerPage, database.length);
+    const endIdx = Math.min(startIdx + rowsPerPage, displayData.length);
 
     const dateColumns = [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28];
 
@@ -182,8 +233,10 @@ function renderTable() {
                     input.type = 'text';
                 }
 
-                input.value = database[r][c] || '';
-                input.oninput = (e) => updateCell(r, c, e.target.value);
+                input.value = displayData[r][c] || '';
+                // Finding actual index in main database
+                const actualRowIndex = database.indexOf(displayData[r]);
+                input.oninput = (e) => updateCell(actualRowIndex, c, e.target.value);
 
                 td.appendChild(input);
             }
@@ -196,7 +249,8 @@ function renderTable() {
 }
 
 function updatePaginationControls() {
-    const totalPages = Math.ceil(database.length / rowsPerPage);
+    const displayData = getDisplayData();
+    const totalPages = Math.ceil(displayData.length / rowsPerPage);
     const pageInfo = document.getElementById('page-info');
     if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
 
@@ -215,7 +269,8 @@ function prevPage() {
 }
 
 function nextPage() {
-    const totalPages = Math.ceil(database.length / rowsPerPage);
+    const displayData = getDisplayData();
+    const totalPages = Math.ceil(displayData.length / rowsPerPage);
     if (currentPage < totalPages) {
         currentPage++;
         renderTable();
@@ -275,12 +330,6 @@ function generateReport() {
     const reportContainer = document.querySelector('#report-view .table-container');
     if (reportContainer) reportContainer.style.display = 'block';
 
-    const startObj = new Date(startStr);
-    const endObj = new Date(endStr);
-
-    startObj.setHours(0, 0, 0, 0);
-    endObj.setHours(23, 59, 59, 999);
-
     const reportData = [];
 
     const platforms = [
@@ -299,20 +348,21 @@ function generateReport() {
         { index: 27, name: 'TRENDY CLUTURE' }
     ];
 
-    database.forEach(row => {
-        const rowDateStr = row[1]; // Column index 1 is 'DATE'
+    database.forEach((row, rowIndex) => {
+        const rowDateStr = row[1] ? String(row[1]).trim() : '';
         const designNo = row[2] ? String(row[2]).trim() : '';
 
         if (!designNo) return;
 
         let includeRow = true;
-        if (startObj || endObj) {
+        if (startStr && endStr) {
             if (!rowDateStr) {
                 includeRow = false;
             } else {
-                const rowDate = new Date(rowDateStr);
-                if (startObj && rowDate < startObj) includeRow = false;
-                if (endObj && rowDate > endObj) includeRow = false;
+                // Lexicographical comparison for YYYY-MM-DD is extremely robust
+                if (rowDateStr < startStr || rowDateStr > endStr) {
+                    includeRow = false;
+                }
             }
         }
 
@@ -344,12 +394,6 @@ function generateLiveDesign() {
     const reportContainer = document.querySelector('#live-design-view .table-container');
     if (reportContainer) reportContainer.style.display = 'block';
 
-    const startObj = new Date(startStr);
-    const endObj = new Date(endStr);
-
-    startObj.setHours(0, 0, 0, 0);
-    endObj.setHours(23, 59, 59, 999);
-
     const reportData = [];
 
     const platforms = [
@@ -368,7 +412,7 @@ function generateLiveDesign() {
         { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' }
     ];
 
-    database.forEach(row => {
+    database.forEach((row) => {
         const designNo = row[2] ? String(row[2]).trim() : '';
 
         if (!designNo) return;
@@ -382,8 +426,7 @@ function generateLiveDesign() {
 
             let inRange = false;
             if (dateVal) {
-                const pDate = new Date(dateVal);
-                if (pDate >= startObj && pDate <= endObj) {
+                if (dateVal >= startStr && dateVal <= endStr) {
                     inRange = true;
                 }
             }
@@ -416,12 +459,6 @@ function generateNotLiveDesign() {
     const reportContainer = document.querySelector('#not-live-design-view .table-container');
     if (reportContainer) reportContainer.style.display = 'block';
 
-    const startObj = new Date(startStr);
-    const endObj = new Date(endStr);
-
-    startObj.setHours(0, 0, 0, 0);
-    endObj.setHours(23, 59, 59, 999);
-
     const reportData = [];
 
     const platforms = [
@@ -441,19 +478,19 @@ function generateNotLiveDesign() {
     ];
 
     database.forEach(row => {
-        const rowDateStr = row[1]; // Filter by MAIN DATE column 1
+        const rowDateStr = row[1] ? String(row[1]).trim() : '';
         const designNo = row[2] ? String(row[2]).trim() : '';
 
         if (!designNo) return;
 
         let includeRow = true;
-        if (startObj || endObj) {
+        if (startStr && endStr) {
             if (!rowDateStr) {
                 includeRow = false;
             } else {
-                const rowDate = new Date(rowDateStr);
-                if (startObj && rowDate < startObj) includeRow = false;
-                if (endObj && rowDate > endObj) includeRow = false;
+                if (rowDateStr < startStr || rowDateStr > endStr) {
+                    includeRow = false;
+                }
             }
         }
 
@@ -491,9 +528,6 @@ function renderReportTable(reportData, platforms, tbodyId = 'report-table-body',
     tbody.innerHTML = '';
     tfoot.innerHTML = '';
 
-    const grandTotals = Array(platforms.length).fill(0);
-    let finalGrandTotal = 0;
-
     let rowsToRender = [];
     if (Array.isArray(reportData)) {
         rowsToRender = reportData;
@@ -525,10 +559,9 @@ function renderReportTable(reportData, platforms, tbodyId = 'report-table-body',
         tdDesign.textContent = designNo;
         tdDesign.style.fontWeight = '600';
         tdDesign.style.color = 'var(--text-dark)';
-        tdDesign.style.background = 'var(--bg-surface)';
+        tdDesign.style.background = 'rgba(14, 17, 26, 0.98)';
         tr.appendChild(tdDesign);
 
-        let rowTotal = 0;
 
         rowObj.data.forEach((val, i) => {
             const td = document.createElement('td');
@@ -544,49 +577,10 @@ function renderReportTable(reportData, platforms, tbodyId = 'report-table-body',
             }
             td.style.textAlign = 'center';
             tr.appendChild(td);
-
-            rowTotal += val;
-            grandTotals[i] += val;
         });
-
-        const tdTotal = document.createElement('td');
-        tdTotal.textContent = rowTotal > 0 ? rowTotal : '-';
-        tdTotal.style.fontWeight = '700';
-        tdTotal.style.color = 'var(--text-blue)';
-        tdTotal.style.background = 'rgba(59, 130, 246, 0.05)';
-        tr.appendChild(tdTotal);
-
-        finalGrandTotal += rowTotal;
         tbody.appendChild(tr);
     });
 
-    const trFoot = document.createElement('tr');
-
-    const tdTitle = document.createElement('td');
-    tdTitle.textContent = 'GRAND TOTAL';
-    tdTitle.style.background = '#f1f5f9';
-    tdTitle.style.color = 'var(--text-dark)';
-    tdTitle.style.position = 'sticky';
-    tdTitle.style.left = '0';
-    trFoot.appendChild(tdTitle);
-
-    grandTotals.forEach(val => {
-        const td = document.createElement('td');
-        td.textContent = val;
-        td.style.background = '#f1f5f9';
-        td.style.color = 'var(--text-dark)';
-        td.style.textAlign = 'center';
-        trFoot.appendChild(td);
-    });
-
-    const tdFinal = document.createElement('td');
-    tdFinal.textContent = finalGrandTotal > 0 ? finalGrandTotal : '-';
-    tdFinal.style.background = 'var(--primary-color)';
-    tdFinal.style.color = 'white';
-    tdFinal.style.fontSize = '1.1rem';
-    trFoot.appendChild(tdFinal);
-
-    tfoot.appendChild(trFoot);
 }
 function renderLiveDesignTable(reportData, platforms, tbodyId = 'live-design-table-body', tfootId = 'live-design-table-foot') {
     const tbody = document.getElementById(tbodyId);
@@ -594,9 +588,6 @@ function renderLiveDesignTable(reportData, platforms, tbodyId = 'live-design-tab
 
     tbody.innerHTML = '';
     tfoot.innerHTML = '';
-
-    const grandTotals = Array(platforms.length).fill(0);
-    let finalGrandTotal = 0;
 
     let rowsToRender = reportData;
 
@@ -620,10 +611,9 @@ function renderLiveDesignTable(reportData, platforms, tbodyId = 'live-design-tab
         tdDesign.textContent = rowObj.designNo;
         tdDesign.style.fontWeight = '600';
         tdDesign.style.color = 'var(--text-dark)';
-        tdDesign.style.background = 'var(--bg-surface)';
+        tdDesign.style.background = 'rgba(14, 17, 26, 0.98)';
         tr.appendChild(tdDesign);
 
-        let rowTotal = 0;
 
         rowObj.data.forEach((item, i) => {
             const tdVal = document.createElement('td');
@@ -655,54 +645,10 @@ function renderLiveDesignTable(reportData, platforms, tbodyId = 'live-design-tab
             tdDate.style.color = 'var(--text-muted)';
             tdDate.style.fontSize = '0.75rem';
             tr.appendChild(tdDate);
-
-            rowTotal += item.val;
-            grandTotals[i] += item.val;
         });
-
-        const tdTotal = document.createElement('td');
-        tdTotal.textContent = rowTotal > 0 ? rowTotal : '-';
-        tdTotal.style.fontWeight = '700';
-        tdTotal.style.color = 'var(--text-blue)';
-        tdTotal.style.background = 'rgba(59, 130, 246, 0.05)';
-        tr.appendChild(tdTotal);
-
-        finalGrandTotal += rowTotal;
         tbody.appendChild(tr);
     });
 
-    const trFoot = document.createElement('tr');
-
-    const tdTitle = document.createElement('td');
-    tdTitle.textContent = 'GRAND TOTAL';
-    tdTitle.style.background = '#f1f5f9';
-    tdTitle.style.color = 'var(--text-dark)';
-    tdTitle.style.position = 'sticky';
-    tdTitle.style.left = '0';
-    trFoot.appendChild(tdTitle);
-
-    grandTotals.forEach(val => {
-        const tdVal = document.createElement('td');
-        tdVal.textContent = val;
-        tdVal.style.background = '#f1f5f9';
-        tdVal.style.color = 'var(--text-dark)';
-        tdVal.style.textAlign = 'center';
-        trFoot.appendChild(tdVal);
-
-        const tdDate = document.createElement('td');
-        tdDate.textContent = '';
-        tdDate.style.background = '#f1f5f9';
-        trFoot.appendChild(tdDate);
-    });
-
-    const tdFinal = document.createElement('td');
-    tdFinal.textContent = finalGrandTotal > 0 ? finalGrandTotal : '-';
-    tdFinal.style.background = 'var(--primary-color)';
-    tdFinal.style.color = 'white';
-    tdFinal.style.fontSize = '1.1rem';
-    trFoot.appendChild(tdFinal);
-
-    tfoot.appendChild(trFoot);
 }
 
 window.onload = init;
