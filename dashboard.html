@@ -60,6 +60,7 @@
                 <div class="dashboard-header">
                     <h1>Data Entry Dashboard</h1>
                     <div class="header-actions">
+                        <input type="text" id="search-input" placeholder="Search Design No..." class="date-input" oninput="handleSearch(this.value)" style="width: 250px;">
                         <button onclick="addRows(50)" class="btn primary">ADD 50 ROWS</button>
                         <button onclick="deleteAll()" class="btn danger">DELETE ALL</button>
                         <button onclick="logout()" class="btn secondary">Logout</button>
@@ -145,7 +146,6 @@
                                 <th>BB</th>
                                 <th>DREAM</th>
                                 <th>TRENDY CLUTURE</th>
-                                <th>FINAL TOTAL</th>
                             </tr>
                         </thead>
                         <tbody id="report-table-body">
@@ -202,7 +202,6 @@
                                 <th>DR DATE</th>
                                 <th>TRENDY CLUTURE</th>
                                 <th>TC DATE</th>
-                                <th>FINAL TOTAL</th>
                             </tr>
                         </thead>
                         <tbody id="live-design-table-body">
@@ -259,7 +258,6 @@
                                 <th>DR DATE</th>
                                 <th>TRENDY CLUTURE</th>
                                 <th>TC DATE</th>
-                                <th>FINAL TOTAL</th>
                             </tr>
                         </thead>
                         <tbody id="not-live-design-table-body">
