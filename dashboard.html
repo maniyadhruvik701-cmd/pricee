@@ -60,7 +60,8 @@
                 <div class="dashboard-header">
                     <h1>Data Entry Dashboard</h1>
                     <div class="header-actions">
-                        <input type="text" id="search-input" placeholder="Search Design No..." class="date-input" oninput="handleSearch(this.value)" style="width: 250px;">
+                        <input type="text" id="search-input" placeholder="Search Design No..." class="date-input"
+                            oninput="handleSearch(this.value)" style="width: 250px;">
                         <button onclick="addRows(50)" class="btn primary">ADD 50 ROWS</button>
                         <button onclick="deleteAll()" class="btn danger">DELETE ALL</button>
                         <button onclick="logout()" class="btn secondary">Logout</button>
@@ -110,7 +111,11 @@
 
                 <div class="pagination">
                     <button id="prev-btn" onclick="prevPage()" class="btn secondary">Previous</button>
-                    <span id="page-info">Page 1</span>
+                    <span class="page-info-container" style="font-weight: 500; color: var(--text-secondary);">
+                        Page <input type="number" id="page-jump-input" min="1"
+                            style="width: 60px; text-align: center; padding: 4px; border: 1px solid #ccc; border-radius: 4px; margin: 0 4px;"
+                            onkeypress="handlePageJump(event, this.value)"> of <span id="total-pages">1</span>
+                    </span>
                     <button id="next-btn" onclick="nextPage()" class="btn secondary">Next</button>
                 </div>
             </div>
