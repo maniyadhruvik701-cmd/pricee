@@ -250,9 +250,20 @@ function renderTable() {
 
 function updatePaginationControls() {
     const displayData = getDisplayData();
-    const totalPages = Math.ceil(displayData.length / rowsPerPage);
-    const pageInfo = document.getElementById('page-info');
-    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+    let totalPages = Math.ceil(displayData.length / rowsPerPage);
+    if (totalPages === 0) totalPages = 1;
+
+    const pageJumpInput = document.getElementById('page-jump-input');
+    const totalPagesSpan = document.getElementById('total-pages');
+
+    if (pageJumpInput && totalPagesSpan) {
+        pageJumpInput.value = currentPage;
+        pageJumpInput.max = totalPages;
+        totalPagesSpan.textContent = totalPages;
+    } else {
+        const pageInfo = document.getElementById('page-info');
+        if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
 
     const prevBtn = document.getElementById('prev-btn');
     if (prevBtn) prevBtn.disabled = currentPage === 1;
@@ -270,10 +281,36 @@ function prevPage() {
 
 function nextPage() {
     const displayData = getDisplayData();
-    const totalPages = Math.ceil(displayData.length / rowsPerPage);
+    let totalPages = Math.ceil(displayData.length / rowsPerPage);
+    if (totalPages === 0) totalPages = 1;
     if (currentPage < totalPages) {
         currentPage++;
         renderTable();
+    }
+}
+
+function handlePageJump(e, value) {
+    if (e.key === 'Enter') {
+        const displayData = getDisplayData();
+        let totalPages = Math.ceil(displayData.length / rowsPerPage);
+        if (totalPages === 0) totalPages = 1;
+        
+        let p = parseInt(value, 10);
+        
+        if (!isNaN(p)) {
+            if (p < 1) p = 1;
+            if (p > totalPages) p = totalPages;
+            
+            if (currentPage !== p) {
+                currentPage = p;
+                renderTable();
+            } else {
+                e.target.value = currentPage;
+            }
+        } else {
+            e.target.value = currentPage;
+        }
+        e.target.blur(); // Remove focus after jumping
     }
 }
 
@@ -650,5 +687,119 @@ function renderLiveDesignTable(reportData, platforms, tbodyId = 'live-design-tab
     });
 
 }
+
+function handleGridNavigation(e) {
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return;
+
+    const input = e.target;
+    // We already checked target is INPUT and inside #table-body
+    const td = input.closest('td');
+    const tr = td.closest('tr');
+    const tbody = tr.closest('tbody');
+    
+    if (!td || !tr || !tbody) return;
+
+    const colIndex = Array.from(tr.children).indexOf(td);
+    const rowIndex = Array.from(tbody.children).indexOf(tr);
+
+    let targetInput = null;
+
+    if (e.key === 'ArrowUp') {
+        const prevRow = tbody.children[rowIndex - 1];
+        if (prevRow) targetInput = prevRow.children[colIndex].querySelector('input');
+        if (targetInput) e.preventDefault();
+    } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        const nextRow = tbody.children[rowIndex + 1];
+        if (nextRow) targetInput = nextRow.children[colIndex].querySelector('input');
+        if (targetInput) e.preventDefault();
+    } else if (e.key === 'ArrowLeft') {
+        let atStart = true;
+        if (input.type === 'text') {
+            try {
+                if (typeof input.selectionStart === 'number') {
+                    // If everything is selected, or caret is at index 0
+                    atStart = input.selectionStart === 0;
+                }
+            } catch(err) {}
+        } else if (input.type === 'date') {
+            // Let native left/right work for date segments (MM/DD/YYYY)
+            // But if user needs it to move, Tab/Shift+Tab is standard
+            atStart = false; 
+        }
+        
+        if (atStart) {
+            for (let i = colIndex - 1; i > 0; i--) {
+                const candidate = tr.children[i].querySelector('input');
+                if (candidate) {
+                    targetInput = candidate;
+                    break;
+                }
+            }
+            if (!targetInput && rowIndex > 0) {
+                const prevRow = tbody.children[rowIndex - 1];
+                for (let i = prevRow.children.length - 1; i > 0; i--) {
+                    const candidate = prevRow.children[i].querySelector('input');
+                    if (candidate) {
+                        targetInput = candidate;
+                        break;
+                    }
+                }
+            }
+            if (targetInput) e.preventDefault();
+        }
+    } else if (e.key === 'ArrowRight') {
+        let atEnd = true;
+        if (input.type === 'text') {
+            try {
+                if (typeof input.selectionStart === 'number') {
+                    // If everything is selected, or caret is at the end
+                    atEnd = input.selectionEnd === input.value.length;
+                }
+            } catch(err) {}
+        } else if (input.type === 'date') {
+            // Let native left/right work for date segments
+            atEnd = false; 
+        }
+        
+        if (atEnd) {
+            for (let i = colIndex + 1; i < tr.children.length; i++) {
+                const candidate = tr.children[i].querySelector('input');
+                if (candidate) {
+                    targetInput = candidate;
+                    break;
+                }
+            }
+            if (!targetInput && rowIndex < tbody.children.length - 1) {
+                const nextRow = tbody.children[rowIndex + 1];
+                for (let i = 1; i < nextRow.children.length; i++) {
+                    const candidate = nextRow.children[i].querySelector('input');
+                    if (candidate) {
+                        targetInput = candidate;
+                        break;
+                    }
+                }
+            }
+            if (targetInput) e.preventDefault();
+        }
+    }
+
+    if (targetInput) {
+        targetInput.focus();
+        setTimeout(() => {
+            if (targetInput.type === 'text') {
+                targetInput.select();
+            }
+        }, 0);
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.target && e.target.tagName === 'INPUT') {
+        const tbody = e.target.closest('#table-body');
+        if (tbody) {
+            handleGridNavigation(e);
+        }
+    }
+});
 
 window.onload = init;
