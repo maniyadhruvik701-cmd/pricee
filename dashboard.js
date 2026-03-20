@@ -55,31 +55,34 @@ function updateFromDatabase() {
     const startIdx = (currentPage - 1) * rowsPerPage;
     const endIdx = Math.min(startIdx + rowsPerPage, displayData.length);
 
-    if (searchTerm || tbody.children.length !== (endIdx - startIdx)) {
+    // Only re-render if the number of rows changed (e.g. search results count changed or pagination)
+    if (tbody.children.length !== (endIdx - startIdx)) {
         renderTable();
         return;
     }
 
+
     for (let r = startIdx, i = 0; r < endIdx; r++, i++) {
         const tr = tbody.children[i];
-        if (!database[r] || !Array.isArray(database[r])) continue;
+        if (!displayData[r] || !Array.isArray(displayData[r])) continue;
 
         for (let c = 0; c < totalColumns; c++) {
             if (c === 0) {
-                if (tr.children[c].textContent != database[r][c]) {
-                    tr.children[c].textContent = database[r][c];
+                if (tr.children[c].textContent != displayData[r][c]) {
+                    tr.children[c].textContent = displayData[r][c];
                 }
             } else {
                 const td = tr.children[c];
                 if (!td) continue;
                 const input = td.querySelector('input');
                 if (input && document.activeElement !== input) {
-                    if (input.value !== (database[r][c] || '')) {
-                        input.value = database[r][c] || '';
+                    if (input.value !== (displayData[r][c] || '')) {
+                        input.value = displayData[r][c] || '';
                     }
                 }
             }
         }
+
     }
 }
 
@@ -222,7 +225,7 @@ function renderTable() {
             const td = document.createElement('td');
 
             if (c === 0) {
-                td.textContent = database[r][c];
+                td.textContent = displayData[r][c];
                 td.classList.add('readonly-cell');
             } else {
                 const input = document.createElement('input');
@@ -236,7 +239,8 @@ function renderTable() {
                 input.value = displayData[r][c] || '';
                 // Finding actual index in main database
                 const actualRowIndex = database.indexOf(displayData[r]);
-                input.oninput = (e) => updateCell(actualRowIndex, c, e.target.value);
+                input.onchange = (e) => updateCell(actualRowIndex, c, e.target.value);
+
 
                 td.appendChild(input);
             }
