@@ -20,7 +20,7 @@ if (typeof firebase !== 'undefined') {
 let database = [];
 const rowsPerPage = 20;
 let currentPage = 1;
-const totalColumns = 29;
+const totalColumns = 31;
 let searchTerm = '';
 
 function saveData() {
@@ -216,7 +216,7 @@ function renderTable() {
     const startIdx = (currentPage - 1) * rowsPerPage;
     const endIdx = Math.min(startIdx + rowsPerPage, displayData.length);
 
-    const dateColumns = [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28];
+    const dateColumns = [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
     for (let r = startIdx; r < endIdx; r++) {
         const tr = document.createElement('tr');
@@ -298,13 +298,13 @@ function handlePageJump(e, value) {
         const displayData = getDisplayData();
         let totalPages = Math.ceil(displayData.length / rowsPerPage);
         if (totalPages === 0) totalPages = 1;
-        
+
         let p = parseInt(value, 10);
-        
+
         if (!isNaN(p)) {
             if (p < 1) p = 1;
             if (p > totalPages) p = totalPages;
-            
+
             if (currentPage !== p) {
                 currentPage = p;
                 renderTable();
@@ -380,13 +380,14 @@ function generateReport() {
         { index: 9, name: 'AMZONE' },
         { index: 11, name: 'MY DE' },
         { index: 13, name: 'MY JIHU' },
-        { index: 15, name: 'T CENTER' },
-        { index: 17, name: 'WEBSITE HONEST' },
-        { index: 19, name: 'RTW' },
-        { index: 21, name: 'MS' },
-        { index: 23, name: 'BB' },
-        { index: 25, name: 'DREAM' },
-        { index: 27, name: 'TRENDY CLUTURE' }
+        { index: 15, name: 'HOP-MY' },
+        { index: 17, name: 'T CENTER' },
+        { index: 19, name: 'WEBSITE HONEST' },
+        { index: 21, name: 'RTW' },
+        { index: 23, name: 'MS' },
+        { index: 25, name: 'BB' },
+        { index: 27, name: 'DREAM' },
+        { index: 29, name: 'TRENDY CLUTURE' }
     ];
 
     database.forEach((row, rowIndex) => {
@@ -444,13 +445,14 @@ function generateLiveDesign() {
         { index: 9, dateIndex: 10, name: 'AMZONE' },
         { index: 11, dateIndex: 12, name: 'MY DE' },
         { index: 13, dateIndex: 14, name: 'MY JIHU' },
-        { index: 15, dateIndex: 16, name: 'T CENTER' },
-        { index: 17, dateIndex: 18, name: 'WEBSITE HONEST' },
-        { index: 19, dateIndex: 20, name: 'RTW' },
-        { index: 21, dateIndex: 22, name: 'MS' },
-        { index: 23, dateIndex: 24, name: 'BB' },
-        { index: 25, dateIndex: 26, name: 'DREAM' },
-        { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' }
+        { index: 15, dateIndex: 16, name: 'HOP-MY' },
+        { index: 17, dateIndex: 18, name: 'T CENTER' },
+        { index: 19, dateIndex: 20, name: 'WEBSITE HONEST' },
+        { index: 21, dateIndex: 22, name: 'RTW' },
+        { index: 23, dateIndex: 24, name: 'MS' },
+        { index: 25, dateIndex: 26, name: 'BB' },
+        { index: 27, dateIndex: 28, name: 'DREAM' },
+        { index: 29, dateIndex: 30, name: 'TRENDY CLUTURE' }
     ];
 
     database.forEach((row) => {
@@ -509,13 +511,14 @@ function generateNotLiveDesign() {
         { index: 9, dateIndex: 10, name: 'AMZONE' },
         { index: 11, dateIndex: 12, name: 'MY DE' },
         { index: 13, dateIndex: 14, name: 'MY JIHU' },
-        { index: 15, dateIndex: 16, name: 'T CENTER' },
-        { index: 17, dateIndex: 18, name: 'WEBSITE HONEST' },
-        { index: 19, dateIndex: 20, name: 'RTW' },
-        { index: 21, dateIndex: 22, name: 'MS' },
-        { index: 23, dateIndex: 24, name: 'BB' },
-        { index: 25, dateIndex: 26, name: 'DREAM' },
-        { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' }
+        { index: 15, dateIndex: 16, name: 'HOP-MY' },
+        { index: 17, dateIndex: 18, name: 'T CENTER' },
+        { index: 19, dateIndex: 20, name: 'WEBSITE HONEST' },
+        { index: 21, dateIndex: 22, name: 'RTW' },
+        { index: 23, dateIndex: 24, name: 'MS' },
+        { index: 25, dateIndex: 26, name: 'BB' },
+        { index: 27, dateIndex: 28, name: 'DREAM' },
+        { index: 29, dateIndex: 30, name: 'TRENDY CLUTURE' }
     ];
 
     database.forEach(row => {
@@ -700,7 +703,7 @@ function handleGridNavigation(e) {
     const td = input.closest('td');
     const tr = td.closest('tr');
     const tbody = tr.closest('tbody');
-    
+
     if (!td || !tr || !tbody) return;
 
     const colIndex = Array.from(tr.children).indexOf(td);
@@ -724,13 +727,13 @@ function handleGridNavigation(e) {
                     // If everything is selected, or caret is at index 0
                     atStart = input.selectionStart === 0;
                 }
-            } catch(err) {}
+            } catch (err) { }
         } else if (input.type === 'date') {
             // Let native left/right work for date segments (MM/DD/YYYY)
             // But if user needs it to move, Tab/Shift+Tab is standard
-            atStart = false; 
+            atStart = false;
         }
-        
+
         if (atStart) {
             for (let i = colIndex - 1; i > 0; i--) {
                 const candidate = tr.children[i].querySelector('input');
@@ -759,12 +762,12 @@ function handleGridNavigation(e) {
                     // If everything is selected, or caret is at the end
                     atEnd = input.selectionEnd === input.value.length;
                 }
-            } catch(err) {}
+            } catch (err) { }
         } else if (input.type === 'date') {
             // Let native left/right work for date segments
-            atEnd = false; 
+            atEnd = false;
         }
-        
+
         if (atEnd) {
             for (let i = colIndex + 1; i < tr.children.length; i++) {
                 const candidate = tr.children[i].querySelector('input');
@@ -797,7 +800,7 @@ function handleGridNavigation(e) {
     }
 }
 
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.target && e.target.tagName === 'INPUT') {
         const tbody = e.target.closest('#table-body');
         if (tbody) {
