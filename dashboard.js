@@ -20,7 +20,7 @@ if (typeof firebase !== 'undefined') {
 let database = [];
 const rowsPerPage = 20;
 let currentPage = 1;
-const totalColumns = 29;
+const totalColumns = 31;
 let searchTerm = '';
 
 function saveData() {
@@ -216,7 +216,7 @@ function renderTable() {
     const startIdx = (currentPage - 1) * rowsPerPage;
     const endIdx = Math.min(startIdx + rowsPerPage, displayData.length);
 
-    const dateColumns = [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28];
+    const dateColumns = [1, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
     for (let r = startIdx; r < endIdx; r++) {
         const tr = document.createElement('tr');
@@ -386,7 +386,8 @@ function generateReport() {
         { index: 21, name: 'MS' },
         { index: 23, name: 'BB' },
         { index: 25, name: 'DREAM' },
-        { index: 27, name: 'TRENDY CLUTURE' }
+        { index: 27, name: 'TRENDY CLUTURE' },
+        { index: 29, name: 'HOP- MYNTRA' }
     ];
 
     database.forEach((row, rowIndex) => {
@@ -450,7 +451,8 @@ function generateLiveDesign() {
         { index: 21, dateIndex: 22, name: 'MS' },
         { index: 23, dateIndex: 24, name: 'BB' },
         { index: 25, dateIndex: 26, name: 'DREAM' },
-        { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' }
+        { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' },
+        { index: 29, dateIndex: 30, name: 'HOP- MYNTRA' }
     ];
 
     database.forEach((row) => {
@@ -515,7 +517,8 @@ function generateNotLiveDesign() {
         { index: 21, dateIndex: 22, name: 'MS' },
         { index: 23, dateIndex: 24, name: 'BB' },
         { index: 25, dateIndex: 26, name: 'DREAM' },
-        { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' }
+        { index: 27, dateIndex: 28, name: 'TRENDY CLUTURE' },
+        { index: 29, dateIndex: 30, name: 'HOP- MYNTRA' }
     ];
 
     database.forEach(row => {
